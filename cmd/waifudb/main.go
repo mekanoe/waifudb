@@ -13,4 +13,6 @@ func main() {
 		log.Fatalln(err)
 	}
 	fmt.Println("こんばんわ")
+
+	
 }

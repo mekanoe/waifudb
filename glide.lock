@@ -1,10 +1,12 @@
-hash: d07a3ed620b5bc1f1f5bbc3963799564b3e02831a2470680dd240797ffc490cd
-updated: 2017-07-21T18:58:30.393361479-05:00
+hash: 1175ece30e56bc6c8cc6715c21dfa70c7e157d1de4a9b96dab4d19e9cb53a700
+updated: 2017-07-21T22:42:42.894009455-05:00
 imports:
 - name: github.com/boltdb/bolt
   version: 2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8
 - name: github.com/imdario/mergo
   version: 3e95a51e0639b4cf372f2ccf74c86749d747fbdc
+- name: github.com/segmentio/ksuid
+  version: e3c9952840557adbb3538b1039e783d44c21ae4a
 - name: golang.org/x/sys
   version: 99f16d856c9836c42d24e7ab64ea72916925fa97
   subpackages:
