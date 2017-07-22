@@ -19,3 +19,5 @@ vendor
 
 # Dev database
 .trash.db
+
+.vscode
