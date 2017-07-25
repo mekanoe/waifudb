@@ -4,8 +4,13 @@ go:
 - 1.x
 - 1.8
 
+map:
+  - stuff:
+    stuff:
+
+
 install:
 - go get -u github.com/golang/dep/cmd/dep
 - dep ensure
 
-script: (go build -o waifudb ./cmd/waifudb && ./waifudb && go test -v $(go list ./... | grep -v /vendor/))
+script: (go build -o waifudb ./cmd/waifudb && (./waifudb &) && go test -v $(go list ./... | grep -v /vendor/))
