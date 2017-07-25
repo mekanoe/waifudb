@@ -5,15 +5,15 @@ import (
 	"log"
 
 	"github.com/kayteh/waifudb/cmd/waifudb/run"
-	"github.com/kayteh/waifudb/datastore"
 )
 
 func main() {
-	_, err := datastore.New(nil)
-	if err != nil {
-		log.Fatalln(err)
-	}
 	fmt.Println("こんばんわ")
 
-	run.Start("localhost:7099")
+	s, err := run.New(nil)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	s.ListenAndServe()
 }
