@@ -31,8 +31,34 @@ func TestGetSet(t *testing.T) {
 		},
 	}
 
+	testDataType := map[string]map[string]interface{}{
+		"payload": map[string]interface{}{
+			"@a":      "puttype",
+			"type":    "person",
+			"indexes": []string{"name", "instrument"},
+		},
+	}
+
 	var buf bytes.Buffer
-	err := json.NewEncoder(&buf).Encode(&testDataSet)
+	err := json.NewEncoder(&buf).Encode(&testDataType)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	ty, err := tquery(t, cl, &buf)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if !ty.Success {
+		t.Error(ty.Error)
+		return
+	}
+
+	buf.Reset()
+	err = json.NewEncoder(&buf).Encode(&testDataSet)
 	if err != nil {
 		t.Error(err)
 		return
