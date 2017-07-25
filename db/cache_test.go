@@ -3,8 +3,15 @@ package db
 import "testing"
 
 func TestCacheLoad(t *testing.T) {
-	w, ds := getWaifu()
-	w.CreateType("testcache")
+	path := getRandomDBName()
+	w, ds := getWaifu(path)
+
+	_, err := w.CreateType("testcache", []string{})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
 	tt, err := w.GetType("testcache")
 	if err != nil {
 		t.Error(err)
@@ -12,7 +19,7 @@ func TestCacheLoad(t *testing.T) {
 	}
 	ds.Release()
 
-	w2, ds2 := getWaifu()
+	w2, ds2 := getWaifu(path)
 	tt2, err := w2.GetType("testcache")
 	if err != nil {
 		t.Error(err)

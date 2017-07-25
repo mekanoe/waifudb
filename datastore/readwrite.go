@@ -70,7 +70,11 @@ func (ds *Datastore) Get(bucket []byte, key string) ([]byte, error) {
 
 	err = ds.Bolt.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(bucket)
+
 		out = b.Get([]byte(key))
+		if len(out) == 0 {
+			return ErrNotFound
+		}
 		return nil
 	})
 	return out, err

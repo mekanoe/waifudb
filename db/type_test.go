@@ -3,9 +3,9 @@ package db
 import "testing"
 
 func TestTypes(t *testing.T) {
-	w, ds := getWaifu()
+	w, ds := getWaifu("")
 
-	err := w.CreateType("test-type")
+	_, err := w.CreateType("test-type", []string{})
 	if err != nil {
 		t.Error("create type failed", err)
 		return

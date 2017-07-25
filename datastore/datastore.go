@@ -20,6 +20,12 @@ var (
 
 	// ErrBadBucket means you used a bucket that this datastore doesn't deal with.
 	ErrBadBucket = errors.New("waifudb/datastore: bucket not relevant")
+
+	// ErrNotFound occurs on unset/empty keys.
+	ErrNotFound = errors.New("waifudb/datastore: no value at requested key")
+
+	// ErrStopWalking ends a walk
+	ErrStopWalking = errors.New("walk stop")
 )
 
 // Datastore contains a RWMutex and a Bolt.DB instance for all the
@@ -94,4 +100,8 @@ func New(cfg *Config) (*Datastore, error) {
 
 func (ds *Datastore) Release() error {
 	return ds.Bolt.Close()
+}
+
+func (ds *Datastore) DestroyDestroyDestroy() error {
+	return os.Remove(ds.Bolt.Path())
 }

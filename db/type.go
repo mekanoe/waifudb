@@ -8,32 +8,34 @@ import (
 )
 
 type Type struct {
-	ID   string // KSUID
-	Name string
+	ID      string // KSUID
+	Name    string
+	Indexes []string
 }
 
-func (w *WaifuDB) CreateType(name string) error {
+func (w *WaifuDB) CreateType(name string, indexes []string) (*Type, error) {
 	kid, err := ksuid.NewRandom()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	id := kid.String()
 
 	t := Type{
-		ID:   id,
-		Name: name,
+		ID:      id,
+		Name:    name,
+		Indexes: indexes,
 	}
 
 	err = w.store.SetJSON(bktTypes, id, &t)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	w.cache.M.Lock()
 	w.cache.Types[name] = t
 	w.cache.M.Unlock()
 
-	return nil
+	return &t, nil
 }
 
 func (w *WaifuDB) GetType(name string) (*Type, error) {
@@ -65,4 +67,13 @@ func (w *WaifuDB) loadTypes() error {
 
 		return nil
 	})
+}
+
+func (t *Type) HasIndex(i string) bool {
+	for _, v := range t.Indexes {
+		if i == v {
+			return true
+		}
+	}
+	return false
 }

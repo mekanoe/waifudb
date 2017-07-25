@@ -3,13 +3,14 @@ package db
 import (
 	"errors"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/kayteh/waifudb/datastore"
 )
 
 type WaifuDB struct {
-	store *datastore.Datastore
-
-	cache *cache
+	store  *datastore.Datastore
+	logger *logrus.Entry
+	cache  *cache
 }
 
 var (
@@ -25,8 +26,9 @@ var (
 
 func New(store *datastore.Datastore) (*WaifuDB, error) {
 	w := &WaifuDB{
-		store: store,
-		cache: newCache(),
+		store:  store,
+		cache:  newCache(),
+		logger: logrus.WithFields(logrus.Fields{}),
 	}
 
 	err := w.loadTypes()

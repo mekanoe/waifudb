@@ -73,7 +73,13 @@ func TestRWErrors(t *testing.T) {
 	err = ds.GetJSON([]byte("NOTGOOD"), "wefj9qwejf", nil)
 	if err == nil {
 		t.Error("did not error due to bad bucket name")
-		t.Fail()
+		return
+	}
+
+	d, err := ds.Get([]byte("data"), "notakey")
+	if err != ErrNotFound {
+		t.Error("notakey not empty, didn't fail. data := %s", d)
+		return
 	}
 
 	freeDS(ds)

@@ -1,21 +1,46 @@
 package run
 
 import (
+	"log"
+	"math/rand"
 	"net/http"
 	"testing"
+	"time"
 
 	"encoding/json"
 
 	"github.com/hydrogen18/memlistener"
-	"github.com/valyala/fasthttp"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randStringRunes(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
+func getRandomDBName() string {
+	return "/tmp/" + randStringRunes(5) + ".test-waifu.db"
+}
 
 func getInmemoryServer() (*memlistener.MemoryListener, *http.Client) {
 	iml := memlistener.NewMemoryListener()
 
-	s := &fasthttp.Server{
-		Handler: handler,
+	s, err := New(&Config{
+		DBPath: getRandomDBName(),
+	})
+	if err != nil {
+		log.Fatalln("server failed to create")
 	}
+
+	go s.Serve(iml)
 
 	tport := &http.Transport{}
 	tport.Dial = iml.Dial
@@ -29,13 +54,19 @@ func getInmemoryServer() (*memlistener.MemoryListener, *http.Client) {
 		Transport: tport,
 	}
 
-	go s.Serve(iml)
-
 	return iml, client
 }
 
 func TestStart(t *testing.T) {
-	go Start("unix:/tmp/test-waifu")
+	s, err := New(&Config{
+		DBPath: getRandomDBName(),
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	go s.ListenAndServe()
 }
 
 func TestPing(t *testing.T) {
@@ -67,35 +98,6 @@ func TestPing(t *testing.T) {
 	iml.Close()
 }
 
-func TestEmptyQuery(t *testing.T) {
-	iml, cl := getInmemoryServer()
-
-	rq, err := http.NewRequest("QUERY", "http://localhost/", nil)
-	if err != nil {
-		t.Error("request create error: ", err)
-		return
-	}
-
-	_, err = cl.Do(rq)
-	if err != nil {
-		t.Error("request create error: ", err)
-		return
-	}
-
-	// var resp OutgoingMessage
-	// err = json.NewDecoder(rsp.Body).Decode(&resp)
-	// if err != nil {
-	// 	t.Error("decoder error: ", err)
-	// 	return
-	// }
-
-	// if !resp.Success || resp.Payload.(string) != "resp" {
-	// 	t.Errorf("resp response is bad: %v", resp)
-	// }
-
-	iml.Close()
-}
-
 func TestBadRequest(t *testing.T) {
 	iml, cl := getInmemoryServer()
 
@@ -118,7 +120,7 @@ func TestBadRequest(t *testing.T) {
 		return
 	}
 
-	if msg.Success || msg.Payload.(string) != "bad request" {
+	if msg.Success || msg.Error != "bad request" {
 		t.Errorf("msg response is bad: %v", msg)
 	}
 
