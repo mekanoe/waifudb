@@ -2,9 +2,8 @@ package db
 
 import (
 	"bytes"
-	"fmt"
-
 	"encoding/json"
+	"fmt"
 
 	"github.com/boltdb/bolt"
 	"github.com/kayteh/waifudb/datastore"
@@ -59,9 +58,10 @@ func (w *WaifuDB) GetItemByKey(t, key string, val interface{}) (map[string]inter
 	}
 
 	if ty.HasIndex(key) {
+
 		// get by index
 		p, err := w.GetIndexPointer(ty, key, val)
-		if err != datastore.ErrNotFound {
+		if err != nil && err != datastore.ErrNotFound {
 			return dat, err
 		}
 

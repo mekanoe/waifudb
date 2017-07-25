@@ -72,7 +72,7 @@ func TestGetByKey(t *testing.T) {
 
 	err = assertMapEq(test, d1)
 	if err != nil {
-		t.Error(err)
+		t.Error("d1 not eq:", err)
 		return
 	}
 
@@ -83,7 +83,7 @@ func TestGetByKey(t *testing.T) {
 	}
 	err = assertMapEq(test, d2)
 	if err != nil {
-		t.Error(err)
+		t.Error("d2 not eq:", err)
 		return
 	}
 
@@ -93,7 +93,7 @@ func TestGetByKey(t *testing.T) {
 func assertMapEq(m1, m2 map[string]interface{}) error {
 	for k, v := range m1 {
 		if m2[k] != v {
-			return fmt.Errorf("m2[%s] !== m1[%s]\n  m2: %v\n  m1: %v", k, k, m2[k], v)
+			return fmt.Errorf("m2[%s] !== m1[%s]\n  m2: %v\n  m1: %v", k, k, m2, m1)
 		}
 	}
 
