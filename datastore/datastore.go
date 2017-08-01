@@ -3,7 +3,6 @@ package datastore
 import (
 	"errors"
 	"log"
-	"sync"
 
 	"os"
 
@@ -31,8 +30,8 @@ var (
 // Datastore contains a RWMutex and a Bolt.DB instance for all the
 // sotrage goodness we'll ever need
 type Datastore struct {
-	lock *sync.RWMutex
-	Bolt *bolt.DB
+	Bolt   *bolt.DB
+	dbPath string
 }
 
 // Config is an optional override struct
@@ -73,10 +72,9 @@ func New(cfg *Config) (*Datastore, error) {
 		return nil, err
 	}
 
-	var lock *sync.RWMutex
 	ds := &Datastore{
-		lock: lock,
-		Bolt: b,
+		Bolt:   b,
+		dbPath: c.Path,
 	}
 
 	err = b.Update(func(tx *bolt.Tx) error {
@@ -103,5 +101,5 @@ func (ds *Datastore) Release() error {
 }
 
 func (ds *Datastore) DestroyDestroyDestroy() error {
-	return os.Remove(ds.Bolt.Path())
+	return os.Remove(ds.dbPath)
 }
