@@ -6,7 +6,10 @@ func TestCacheLoad(t *testing.T) {
 	path := getRandomDBName()
 	w, ds := getWaifu(path)
 
-	_, err := w.CreateType("testcache", []string{})
+	_, err := w.CreateType(&Type{
+		Name:    "testcache",
+		Indexes: []string{"name", "instrument"},
+	})
 	if err != nil {
 		t.Error(err)
 		return

@@ -5,7 +5,14 @@ import "testing"
 func TestTypes(t *testing.T) {
 	w, ds := getWaifu("")
 
-	_, err := w.CreateType("test-type", []string{})
+	_, err := w.CreateType(&Type{
+		Name:    "test-type",
+		Indexes: []string{"name"},
+		Relations: map[string]string{
+			"friend": "friend",
+			"enemy":  "",
+		},
+	})
 	if err != nil {
 		t.Error("create type failed", err)
 		return

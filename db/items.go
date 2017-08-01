@@ -32,7 +32,7 @@ func (w *WaifuDB) PutItem(t string, data map[string]interface{}) (dat map[string
 	}
 
 	// TODO: make goroutinable
-	w.PutIndexEntries(ty, data)
+	go w.PutIndexEntries(ty, data)
 
 	dat = data
 	return dat, err
@@ -50,6 +50,11 @@ func (w *WaifuDB) GetItem(t, id string) (dat map[string]interface{}, err error) 
 }
 
 func (w *WaifuDB) GetItemByKey(t, key string, val interface{}) (map[string]interface{}, error) {
+	lut, ok := w.cache.GetLookup(t, key, val)
+	if ok {
+		return lut, nil
+	}
+
 	var dat map[string]interface{}
 
 	ty, err := w.GetType(t)
@@ -66,31 +71,44 @@ func (w *WaifuDB) GetItemByKey(t, key string, val interface{}) (map[string]inter
 		}
 
 		if err == datastore.ErrNotFound {
-			return w.search(t, key, val)
+			d, err := w.search(t, key, val)
+			if err != nil {
+				return dat, err
+			}
+
+			w.cache.PutLookup(ty.Name, key, val, d)
+			return d, nil
 		}
 
-		return w.GetItem(t, p)
+		d, err := w.GetItem(t, p)
+		if err != nil {
+			return dat, err
+		}
+
+		w.cache.PutLookup(ty.Name, key, val, d)
+		return d, nil
 	}
 
-	return w.search(t, key, val)
+	d, err := w.search(t, key, val)
+	if err != nil {
+		return dat, err
+	}
+
+	w.cache.PutLookup(ty.Name, key, val, d)
+	return d, nil
 }
 
 func (w *WaifuDB) search(t, key string, val interface{}) (dat map[string]interface{}, err error) {
 	prefix := []byte(t)
 
+	s := []byte(fmt.Sprintf(`"%s":"%v"`, key, val))
+
 	err = w.store.Bolt.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket(bktData).Cursor()
 
 		for k, v := c.Seek(prefix); k != nil && bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			var tmp map[string]interface{}
-			err := json.Unmarshal(v, &tmp)
-			if err != nil {
-				return err
-			}
-
-			if tmp[key] == val {
-				dat = tmp
-				break
+			if bytes.Contains(v, s) {
+				return json.Unmarshal(v, &dat)
 			}
 		}
 

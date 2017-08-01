@@ -77,7 +77,10 @@ func TestSeed(t *testing.T) {
 
 	w, db := getWaifu("")
 
-	ty, err := w.CreateType("test", []string{"nani"})
+	ty, err := w.CreateType(&Type{
+		Name:    "test",
+		Indexes: []string{"nani"},
+	})
 	if err != nil {
 		t.Error(err)
 		return
@@ -90,6 +93,10 @@ func TestSeed(t *testing.T) {
 }
 
 func seed(w *WaifuDB, ty *Type, entries int, nonIndexKeys int) {
+	// fmt.Printf("seeding: %s, %d entries, %d non-index fields\n", ty.Name, entries, nonIndexKeys)
+
+	w.store.Bolt.NoSync = true
+
 	for i := 0; i < entries; i++ {
 		// if i%100 == 0 {
 		// 	fmt.Printf("seeding: %d -> %d\n", entries, i)
@@ -110,4 +117,6 @@ func seed(w *WaifuDB, ty *Type, entries int, nonIndexKeys int) {
 			return
 		}
 	}
+
+	w.store.Bolt.NoSync = false
 }

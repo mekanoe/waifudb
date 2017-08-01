@@ -13,6 +13,7 @@ var (
 		[]byte("types"),
 		[]byte("internal"),
 		[]byte("indexes"),
+		[]byte("quads"),
 	}
 )
 

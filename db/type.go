@@ -8,34 +8,36 @@ import (
 )
 
 type Type struct {
-	ID      string // KSUID
-	Name    string
-	Indexes []string
+	ID      string   // KSUID
+	Name    string   `json:"type"`
+	Indexes []string `json:"indexes"`
+
+	// Map of predicates to what they should match up to.
+	// a two-way symmetric relation will be { "friend": "friend" }
+	// a two-way asymmetric relation will be { "follows": "followed_by" }
+	// a one-way relation will be { "hates": "" }
+	Relations map[string]string `json:"relations"`
 }
 
-func (w *WaifuDB) CreateType(name string, indexes []string) (*Type, error) {
+func (w *WaifuDB) CreateType(ty *Type) (*Type, error) {
 	kid, err := ksuid.NewRandom()
 	if err != nil {
 		return nil, err
 	}
 	id := kid.String()
 
-	t := Type{
-		ID:      id,
-		Name:    name,
-		Indexes: indexes,
-	}
+	ty.ID = id
 
-	err = w.store.SetJSON(bktTypes, id, &t)
+	err = w.store.SetJSON(bktTypes, id, &ty)
 	if err != nil {
 		return nil, err
 	}
 
 	w.cache.M.Lock()
-	w.cache.Types[name] = t
+	w.cache.Types[ty.Name] = *ty
 	w.cache.M.Unlock()
 
-	return &t, nil
+	return ty, nil
 }
 
 func (w *WaifuDB) GetType(name string) (*Type, error) {

@@ -1,6 +1,7 @@
 package run
 
 import (
+	"github.com/kayteh/waifudb/db"
 	"github.com/valyala/fasthttp"
 )
 
@@ -27,6 +28,7 @@ func (s *Server) queryHandler(ctx *fasthttp.RequestCtx) {
 		return
 	case "puttype":
 		s.queryPutType(ctx, p)
+		return
 	default:
 		encodeOut(ctx, pktErrBadRequest)
 	}
@@ -34,6 +36,7 @@ func (s *Server) queryHandler(ctx *fasthttp.RequestCtx) {
 }
 
 func (s *Server) queryGet(ctx *fasthttp.RequestCtx, p map[string]interface{}) {
+	logger.WithField("p", p).Info("queryGet")
 	ty, ok := p["type"].(string)
 	if !ok {
 		encodeOut(ctx, pktErrBadRequest)
@@ -53,17 +56,29 @@ func (s *Server) queryGet(ctx *fasthttp.RequestCtx, p map[string]interface{}) {
 		})
 		return
 	}
-	/*
-		// Mode 2: by index
-		index, ok := p["index"].(string)
-		if ok {
-			val, ok := p["value"].(string)
-			if !ok {
-				encodeOut(ctx, pktErrBadRequest)
-				return
-			}
+
+	// Mode 2: by index
+	index, ok := p["index"].(string)
+	if ok {
+		val, ok := p["value"].(string)
+		if !ok {
+			encodeOut(ctx, pktErrBadRequest)
 			return
-		}*/
+		}
+
+		i, err := s.w.GetItemByKey(ty, index, val)
+		if err != nil {
+			encodeOut(ctx, pktErrGetFailed)
+			return
+		}
+
+		encodeOut(ctx, OutgoingMessage{
+			Success: true,
+			Payload: []map[string]interface{}{i},
+		})
+
+		return
+	}
 
 	encodeOut(ctx, pktErrBadRequest)
 }
@@ -98,26 +113,33 @@ func (s *Server) querySet(ctx *fasthttp.RequestCtx, p map[string]interface{}) {
 }
 
 func (s *Server) queryPutType(ctx *fasthttp.RequestCtx, p map[string]interface{}) {
-	name, ok := p["type"].(string)
+	ty := &db.Type{}
+
+	var ok bool
+	ty.Name, ok = p["type"].(string)
 	if !ok {
-		logger.WithField("payload", p).Error("name cast failed")
-		encodeOut(ctx, pktErrBadRequest)
+		encodeOut(ctx, OutgoingMessage{
+			Success: false,
+			Error:   "`type` field required",
+		})
 		return
 	}
 
-	indexesInterface, ok := p["indexes"].([]interface{})
-	if !ok {
-		logger.WithField("payload", p).Error("index cast failed")
-		encodeOut(ctx, pktErrBadRequest)
-		return
+	ifIdxs := p["indexes"].([]interface{})
+	ty.Indexes = make([]string, len(ifIdxs))
+
+	for k, v := range ifIdxs {
+		ty.Indexes[k] = v.(string)
 	}
 
-	indexes := make([]string, len(indexesInterface))
-	for i, v := range indexesInterface {
-		indexes[i] = v.(string)
+	ifRels, _ := p["relations"].(map[string]interface{})
+	ty.Relations = map[string]string{}
+
+	for k, v := range ifRels {
+		ty.Relations[k] = v.(string)
 	}
 
-	ty, err := s.w.CreateType(name, indexes)
+	ty, err := s.w.CreateType(ty)
 	if err != nil {
 		encodeOut(ctx, OutgoingMessage{
 			Success: false,

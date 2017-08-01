@@ -8,7 +8,10 @@ import (
 func TestItems(t *testing.T) {
 	w, ds := getWaifu("")
 
-	w.CreateType("test", []string{"name", "instrument"})
+	w.CreateType(&Type{
+		Name:    "test",
+		Indexes: []string{"name", "instrument"},
+	})
 
 	test := map[string]interface{}{
 		"name":       "Reina Kousaka",
@@ -46,7 +49,10 @@ func TestItems(t *testing.T) {
 func TestGetByKey(t *testing.T) {
 	w, ds := getWaifu("")
 
-	_, err := w.CreateType("test", []string{"name", "instrument"})
+	_, err := w.CreateType(&Type{
+		Name:    "test",
+		Indexes: []string{"name", "instrument"},
+	})
 	if err != nil {
 		t.Error(err)
 		return

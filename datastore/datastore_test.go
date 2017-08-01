@@ -1,11 +1,10 @@
 package datastore
 
 import (
+	"bytes"
 	"os"
 	"sync"
 	"testing"
-
-	"bytes"
 
 	"github.com/boltdb/bolt"
 )

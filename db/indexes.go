@@ -5,23 +5,32 @@ import (
 	"hash/fnv"
 	"strconv"
 
+	"sync"
+
 	"github.com/Sirupsen/logrus"
 )
 
-func hashIndex(ty *Type, index string, val interface{}) (string, error) {
+var (
+	hLock = &sync.Mutex{}
+	h     = fnv.New64()
+)
+
+func hashIndex(ty, index string, val interface{}) (string, error) {
 	// return fmt.Sprintf("%s:%s:%s", ty.Name, index, val), nil
 
-	hash := fnv.New64()
-	_, err := fmt.Fprintf(hash, "%s:%s:%s", ty.Name, index, val)
+	hLock.Lock()
+	defer hLock.Unlock()
+	h.Reset()
+	_, err := fmt.Fprintf(h, "%s:%s:%s", ty, index, val)
 	if err != nil {
 		return "", err
 	}
 
-	return strconv.FormatUint(hash.Sum64(), 16), nil
+	return strconv.FormatUint(h.Sum64(), 16), nil
 }
 
 func (w *WaifuDB) GetIndexPointer(ty *Type, index string, val interface{}) (string, error) {
-	key, err := hashIndex(ty, index, val)
+	key, err := hashIndex(ty.Name, index, val)
 	if err != nil {
 		return "", err
 	}
@@ -37,7 +46,7 @@ func (w *WaifuDB) GetIndexPointer(ty *Type, index string, val interface{}) (stri
 func (w *WaifuDB) PutIndexEntries(ty *Type, data map[string]interface{}) {
 	for k, v := range data {
 		if ty.HasIndex(k) {
-			key, err := hashIndex(ty, k, v)
+			key, err := hashIndex(ty.Name, k, v)
 			if err != nil {
 				w.logger.WithError(err).WithFields(logrus.Fields{
 					"data": data,

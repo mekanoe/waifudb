@@ -5,7 +5,10 @@ import "testing"
 func TestIndexGet(t *testing.T) {
 	w, ds := getWaifu("")
 
-	_, err := w.CreateType("person", []string{"name"})
+	_, err := w.CreateType(&Type{
+		Name:    "person",
+		Indexes: []string{"name", "instrument"},
+	})
 	if err != nil {
 		t.Error(err)
 		return
@@ -15,15 +18,16 @@ func TestIndexGet(t *testing.T) {
 }
 
 func BenchmarkIndexes(b *testing.B) {
-	w, ds := getWaifu(".benchmark-1.db")
+	w, ds := getWaifu("")
 
-	ty, err := w.CreateType("name", []string{"name", "instrument"})
+	ty, err := w.CreateType(&Type{
+		Name:    "person",
+		Indexes: []string{"name", "instrument"},
+	})
 	if err != nil {
 		b.Error(err)
 		return
 	}
-
-	seed(w, ty, 10000, 5)
 
 	knownData := map[string]interface{}{
 		"name":       "Reina Kousaka",
@@ -33,9 +37,11 @@ func BenchmarkIndexes(b *testing.B) {
 
 	w.PutItem(ty.Name, knownData)
 
+	seed(w, ty, 100000, 5)
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := w.GetItemByKey(ty.Name, "name", knownData["name"])
+		_, err := w.GetItemByKey(ty.Name, "name", "Reina Kousaka")
 		if err != nil {
 			b.Error(err)
 			return
@@ -47,9 +53,12 @@ func BenchmarkIndexes(b *testing.B) {
 }
 
 func BenchmarkNoIndexes(b *testing.B) {
-	w, ds := getWaifu(".benchmark-2.db")
+	w, ds := getWaifu("")
 
-	ty, err := w.CreateType("name", []string{"name", "instrument"})
+	ty, err := w.CreateType(&Type{
+		Name:    "person",
+		Indexes: []string{"name", "instrument"},
+	})
 	if err != nil {
 		b.Error(err)
 		return
@@ -61,13 +70,12 @@ func BenchmarkNoIndexes(b *testing.B) {
 		"loves":      "me",
 	}
 
+	seed(w, ty, 100000, 5)
+
 	w.PutItem(ty.Name, knownData)
-
-	seed(w, ty, 10, 5)
-
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, err := w.GetItemByKey(ty.Name, "loves", knownData["loves"])
+		_, err := w.GetItemByKey(ty.Name, "loves", "me")
 		if err != nil {
 			b.Error(err)
 			return

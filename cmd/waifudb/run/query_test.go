@@ -31,6 +31,15 @@ func TestGetSet(t *testing.T) {
 		},
 	}
 
+	testDataGetIndex := map[string]map[string]interface{}{
+		"payload": map[string]interface{}{
+			"@a":    "get",
+			"type":  "person",
+			"index": "loves",
+			"value": "me",
+		},
+	}
+
 	testDataType := map[string]map[string]interface{}{
 		"payload": map[string]interface{}{
 			"@a":      "puttype",
@@ -112,6 +121,35 @@ func TestGetSet(t *testing.T) {
 	}
 
 	err = assertMapEq(reina, m3)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	buf.Reset()
+	err = json.NewEncoder(&buf).Encode(&testDataGetIndex)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	o, err = tquery(t, cl, &buf)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	if !o.Success {
+		t.Error(o.Error)
+		return
+	}
+
+	m4, ok := o.Payload.([]interface{})[0].(map[string]interface{})
+	if !ok {
+		t.Error("payload wasn't the right type")
+	}
+
+	err = assertMapEq(reina, m4)
 	if err != nil {
 		t.Error(err)
 		return
