@@ -26,13 +26,18 @@ func (w *WaifuDB) PutItem(t string, data map[string]interface{}) (dat map[string
 	data["id"] = id
 	data["type"] = t
 
+	quads, err := w.SiftQuads(ty, data)
+	if err != nil {
+		return dat, err
+	}
+
 	err = w.store.SetJSON(bktData, key, &data)
 	if err != nil {
 		return dat, err
 	}
 
-	// TODO: make goroutinable
 	go w.PutIndexEntries(ty, data)
+	w.SaveQuads(quads)
 
 	dat = data
 	return dat, err

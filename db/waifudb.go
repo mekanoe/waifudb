@@ -22,6 +22,7 @@ var (
 	bktInternal = []byte("internal")
 	bktTypes    = []byte("types")
 	bktIndexes  = []byte("indexes")
+	bktQuads    = []byte("quads")
 )
 
 func New(store *datastore.Datastore) (*WaifuDB, error) {
